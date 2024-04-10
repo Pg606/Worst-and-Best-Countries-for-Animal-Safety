@@ -1,0 +1,480 @@
+---
+title: "MVA Midterm Exam"
+author: "pg606@scarletmail.rutgers.edu"
+date: "2024-04-01"
+output: html_document
+---
+
+```{r}
+library(psych)
+library(readr)
+## Warning: package 'readr' was built under R version 4.3.2
+library(factoextra)
+
+library(FactoMineR)
+## Warning: package 'FactoMineR' was built under R version 4.3.3
+library(magrittr)
+library(NbClust)
+library(readr)
+library(lattice)
+library(ggplot2)
+library(ggridges)
+library(ggvis)
+library(ggthemes)
+library(cowplot)
+library(gapminder)
+library(gganimate)
+library(dplyr)
+library(tidyverse)
+library(grid)
+library(gridExtra)
+library(RColorBrewer)
+library(cluster)
+library(readr)
+library(factoextra)
+library(magrittr)
+library(NbClust)
+library(ggplot2) # for visualization
+library(reshape2) # for data manipulation
+library(factoextra)
+library(FactoMineR)
+library(psych)
+library(corrplot)
+library(devtools)
+```
+
+
+# DATASET DESCRIPTION :
+
+The dataset encompasses 68 observations, each representing a distinct country, and comprises 11 columns delineating various facets of animal welfare, environmental performance, and related factors. These columns encompass metrics such as the acknowledgment of animal sentience and suffering, the existence of laws against animal cruelty, support for animal welfare declarations, and bans on fur farming, all classified on a scale from 0 to 2. Furthermore, the dataset incorporates information on per capita meat consumption, the proportion of protected areas, pesticide utilization per hectare of cropland, and an environmental performance index score. These parameters offer valuable insights into the policies and practices pertaining to animal welfare and environmental stewardship across diverse nations.
+
+# DATA DICTIONARY:
+
+1 Country: The name of the country.
+2 Recognition of Animal Sentience: An ordinal variable indicating the level of recognition of animal sentience (0 = No, 1 = Partial, 2 = Yes).
+3 Recognition of Animal Suffering: An ordinal variable indicating the level of recognition of animal suffering (0 = No , 1 = Partial, 2 = Yes).
+4 Any Laws Against Animal Cruelty: An ordinal variable indicating the existence of laws against animal cruelty (0 = No , 1 = Partial, 2 = Yes).
+5 Support for the Universal Declaration of Animal Welfare: An ordinal variable indicating the level of support for the Universal Declaration of Animal Welfare (0 = No, 1 = Partial, 2 = Yes).
+6 Fur-Farming Ban: A binary variable indicating whether the country has banned fur farming (0 = No, 1 = Partial, 2 = Yes).
+7 Meat Consumption per Capita in Kilograms: The average meat consumption per capita in kilograms.
+8 Percentage of Protected Areas: The percentage of land designated as protected areas.
+9 Kgs of Pesticide / Hectare of Cropland: The amount of pesticide used per hectare of cropland.
+10 Environmental Performance Index Score: The environmental performance index score, reflecting the country's overall environmental performance.
+11 Total Score: An aggregated score combining various factors related to animal rights and environmental performance.
+
+
+
+```{r}
+animal_data <- read.csv("/Users/Prateekg/Downloads/Animal_Rights.csv", row.names=1)
+
+```
+# About the dataset:
+
+```{r}
+summary(animal_data)
+```
+-Recognition of Animal Sentience and Suffering:
+The dataset indicates that recognition scores for both animal sentience and suffering range from 0 to 2. The mean recognition of animal sentience is around 0.7164, while for animal suffering, it is approximately 0.8955. Most countries have recognition scores above 0, suggesting some level of acknowledgment for animal sentience and suffering.
+
+-Laws Against Animal Cruelty:
+The dataset shows that the minimum and maximum values for laws against animal cruelty are 0 and 2, respectively, with a mean score of approximately 0.9701. This indicates that the majority of countries have some form of laws against animal cruelty.
+
+-Support for Universal Declaration of Animal Welfare and Fur-Farming Ban:
+Similar to laws against animal cruelty, support for the universal declaration of animal welfare and fur-farming ban also range from 0 to 2. The mean score for both features is approximately 0.9701, indicating widespread support for these initiatives.
+
+-Meat Consumption per Capita:
+Meat consumption per capita ranges from approximately 3.78 to 124.10 kilograms, with a mean consumption of around 61.48 kilograms. This suggests significant meat consumption across the sampled countries.
+
+-Percentage of Protected Areas:
+The percentage of protected areas varies from approximately 0.22% to 54.14%, with a mean percentage of approximately 19.69%. This indicates differing levels of environmental conservation efforts among the countries.
+
+-Pesticide Usage:
+Pesticide usage per hectare of cropland ranges from approximately 0.00006 to 13.1 kilograms, with a mean usage of approximately 3.199 kilograms. This suggests varying agricultural practices among the countries.
+
+-Environmental Performance Index (EPI) Score:
+The EPI score ranges from approximately 25.10 to 82.50, with a mean score of approximately 57.27. This indicates differences in environmental performance across the sampled countries.
+
+-Total Score:
+The total score ranges from approximately 12.46 to 519.68, with a mean total score of approximately 342.78. This reflects variations in overall performance among the countries across the measured dimensions.
+Q- Visualize the countries across all the dimensions in one chart so you can easily see similar countries.
+# VISUALIZING THE COUNTRIES :
+
+The stars chart is useful for visualization because it allows for the simultaneous comparison of multiple variables across different categories or groups.
+
+
+```{r}
+animal <- animal_data[,-10]
+stars(animal)
+```
+
+
+This code will create a stars chart using the animal dataset, where each country is represented by a star shape, and the dimensions are represented by the number of points on the star's perimeter. Each point's position on the perimeter indicates the value of that dimension for the respective country. This allows for a multivariate visualization of the data, making it easier to compare countries across multiple variables simultaneously and also to find similar countries through its patterns.
+
+
+```{r}
+#Get the Correlations between the measurements
+
+correlation_matrix <- cor(animal_data[,1:9][-1])
+correlation_matrix
+
+```
+
+
+```{r}
+# Visualize correlation matrix
+ggplot(melt(correlation_matrix), aes(Var1, Var2, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "green", high = "purple", mid = "white", 
+                       midpoint = 0, limit = c(-1,1), space = "Lab", 
+                       name="Correlation") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 10, hjust = 1)) +
+  coord_fixed()
+
+```
+
+Q- Compute the distance between the countries across the different dimensions?
+Calculating the Euclidean distance between countries across different dimensions allows us to quantify the dissimilarity or similarity between countries based on their attribute values. The Euclidean distance is used because it measures the straight-line distance between two points in a multidimensional space, making it suitable for comparing countries across multiple variables.
+
+```{r}
+matstd.data <- scale(animal_data)
+
+# Creating a (Euclidean) distance matrix of the standardized data                     
+dist.data <- dist(matstd.data, method="euclidean")
+colnames(dist.data) <- rownames(dist.data)
+
+dist.data
+
+```
+
+Each cell in the distance matrix represents the Euclidean distance between pairs of countries, with row and column names corresponding to the respective country names. Larger values in the distance matrix indicate greater dissimilarity between countries, while smaller values signify similarity in their attribute profiles across dimensions. This distance matrix serves as a quantitative tool for assessing relationships between countries in a multidimensional attribute space, facilitating tasks such as clustering similar countries, identifying outliers, and analyzing patterns and trends in the data.
+
+
+
+#Optimal Number Of Clusters
+
+
+```{r}
+#CLUSTER ANALYSIS
+
+matstd.animal_data <- scale(animal_data[,1:9])
+
+# Creating a (Euclidean) distance matrix of the standardized data 
+dist.animal_data <- dist(matstd.animal_data, method="euclidean")
+dist.animal_data
+
+fviz_nbclust(matstd.animal_data, kmeans, method = "gap_stat")
+
+```
+
+Optimal Number Of Cluster is 2:
+
+This means that the data can be effectively grouped into two distinct clusters based on their attribute profiles across multiple dimensions. In other words, the countries in the dataset exhibit two distinct patterns or clusters of behavior regarding the variables included in the analysis. This information can be valuable for understanding the underlying structure of the data, identifying similarities and differences between groups of countries, and potentially uncovering meaningful patterns or trends that may exist within the dataset.
+
+
+```{r}
+# Hierarchial Clusiering
+res.hc <- matstd.animal_data %>% scale() %>% dist(method = "euclidean") %>%
+  hclust(method = "ward.D2")
+
+
+
+```
+
+
+
+```{r}
+(kmeans2.animal_data <- kmeans(matstd.animal_data,2,nstart = 10))
+```
+
+
+
+
+
+```{r}
+# Computing the percentage of variation accounted for. Two clusters
+perc.var.2 <- round(100*(1 - kmeans2.animal_data$betweenss/kmeans2.animal_data$totss),1)
+names(perc.var.2) <- "Perc. 2 clus"
+perc.var.2
+
+```
+
+
+
+Cluster classification:
+
+```{r}
+clus1 <- matrix(names(kmeans2.animal_data$cluster[kmeans2.animal_data$cluster == 1]), 
+                ncol=1, nrow=length(kmeans2.animal_data$cluster[kmeans2.animal_data$cluster == 1]))
+colnames(clus1) <- "Cluster 1"
+clus2 <- matrix(names(kmeans2.animal_data$cluster[kmeans2.animal_data$cluster == 2]), 
+                ncol=1, nrow=length(kmeans2.animal_data$cluster[kmeans2.animal_data$cluster == 2]))
+colnames(clus2) <- "Cluster 2"
+
+
+
+list(clus1,clus2)
+
+
+```
+
+Cluster Visualization:
+
+```{r}
+fviz_dend(res.hc, k = 2, # Cut in four groups
+          cex = 0.5, # label size
+          k_colors = c("#2E9FDF", "#00AFBB", "#E7B800", "#FC4E07"),
+          color_labels_by_k = TRUE, # color labels by groups
+          rect = TRUE # Add rectangle around groups
+)
+
+```
+
+
+```{r}
+# Invoking hclust command (cluster analysis by single linkage method)      
+clusl_d.nn <- hclust(dist.animal_data, method = "single") 
+plot(clusl_d.nn, hang=-1,xlab="Object",ylab="Distance",
+     main="Dendrogram. Nearest neighbor linkage")
+
+```
+
+
+```{r}
+#Default - Complete
+clusl_d.fn <- hclust(dist.animal_data)
+plot(clusl_d.fn,hang=-1,xlab="Object",ylab="Distance",
+     main="Dendrogram. Farthest neighbor linkage")
+
+```
+
+
+```{r}
+
+set.seed(123)
+km.res <- kmeans(matstd.animal_data, 2, nstart = 25)
+# Visualize
+fviz_cluster(km.res, data = matstd.animal_data, ellipse.type = "convex",palette = "jco",ggtheme = theme_minimal())
+
+```
+
+
+```{r}
+# If your data has outliears , use PAM method
+pam.res <- pam(matstd.animal_data, 2)
+# Visualize
+fviz_cluster(pam.res)
+
+```
+
+Standard Deviations and Proportion of Variance: The standard deviations represent the variability of the principal components (PCs). The first PC (PC1) has the highest standard deviation, followed by PC2 and so on. The proportion of variance indicates the amount of total variance captured by each PC. PC1 captures 47.68% of the total variance, PC2 captures 23.36%, and so forth.
+
+Cumulative Proportion of Variance: This shows the cumulative proportion of variance explained by each PC. For example, PC1 and PC2 combined capture 71.04% of the total variance.
+
+Rotation Matrix: The rotation matrix shows the loadings (correlation coefficients) of each original variable on each principal component. For instance, PC1 has positive loadings for variables related to meat consumption, fur farming ban, and environmental performance index score, while it has negative loadings for variables related to recognition of animal suffering and laws against animal cruelty.
+
+PCA is used to reduce the dimensionality of the data while preserving most of its variability. It helps in understanding the underlying structure of the dataset, identifying patterns, and exploring relationships between variables. The visualization of PCA results, such as biplots or scree plots, can further aid in interpreting the relationships between countries based on the selected variables.
+
+
+```{r}
+animal_data_pca <- prcomp(correlation_matrix,scale=TRUE) 
+animal_data_pca
+summary(animal_data_pca)
+
+```
+
+
+```{r}
+library(factoextra)
+
+
+
+# Eigenvalues are sdev^2
+(eigen_animal_data <- animal_data_pca$sdev^2)
+names(eigen_animal_data) <- paste("PC",1:8,sep="")
+eigen_animal_data
+sumlambdas <- sum(eigen_animal_data)
+sumlambdas
+propvar <- eigen_animal_data/sumlambdas
+propvar
+cumvar_animal_data <- cumsum(propvar)
+cumvar_animal_data
+matlambdas <- rbind(eigen_animal_data,propvar,cumvar_animal_data)
+rownames(matlambdas) <- c("Eigenvalues","Prop. variance","Cum. prop. variance")
+round(matlambdas,4)
+summary(animal_data_pca)
+animal_data_pca$rotation
+print(animal_data_pca)
+animal_data_pca$x
+
+```
+
+
+```{r}
+# Different PCA Method. 
+res.pca <- PCA(animal_data[,1:9][,-1], graph = FALSE)
+print(res.pca)
+
+fviz_eig(animal_data_pca, addlabels = TRUE)
+
+```
+
+
+```{r}
+
+var <- get_pca_var(res.pca)
+var
+
+```
+
+Based on the cumulative proportion of variance, you should select at least the first 3 principal components (PCs) for your PCA analysis to achieve a cumulative proportion of approximately 83%.
+
+In your output:
+The cumulative proportion reaches 0.8387 after PC3.
+This means that the first 3 PCs collectively explain approximately 83.87% of the total variance in the data.
+```{r}
+plot(eigen_animal_data, xlab = "Component number", ylab = "Component variance", type = "l", main = "Scree diagram")
+plot(log(eigen_animal_data), xlab = "Component number",ylab = "log(Component variance)", type="l",main = "Log(eigenvalue) diagram")
+
+```
+
+
+```{r}
+fviz_pca_var(animal_data_pca,col.var = "cos2",
+             gradient.cols = c("#FFCC00", "#CC9933", "#660033", "#330033"),
+             repel = TRUE)
+
+```
+This visualization helps interpret how different variables contribute to the principal components identified through PCA, with the color indicating the strength of their contribution and the position in the scatterplot revealing their relationships with each other and with the principal components.
+
+The length of the vector reflects the variance of the variable.
+
+Correlation of the variables reflected by the angle between them. The smaller the angle, the more significant the correlation.
+
+```{r}
+fviz_pca_ind(animal_data_pca, col.ind = "cos2", 
+             gradient.cols = c("#FFCC00", "#CC9933", "#660033", "#330033"), 
+             repel = TRUE)
+
+```
+
+The visualization produced in a principal component analysis (PCA) plot displays individual observations as points in a two-dimensional space defined by the first two principal components. 
+
+It helps identify patterns, clusters, and outliers in the data, with points closer together indicating similarity and clusters representing groups of similar observations.
+
+```{r}
+biplot(animal_data_pca)
+```
+
+The visualization generated by fviz_pca_biplot() in a principal component analysis (PCA) plot combines information about both variables and individuals (observations) in the same plot. 
+
+Each variable is represented by an arrow, indicating its direction and magnitude in the PCA space. The length and direction of the arrow represent the contribution and relationship of the variable to the principal components, respectively.
+
+```{r}
+fviz_pca_biplot(res.pca, repel = TRUE,
+                col.var = "#FC4E07", 
+                )
+
+```
+
+
+
+```{r}
+#FACTOR ANALYSIS
+cov(animal_data[,-1])
+fit.pc <- principal(animal_data[,1:9][-1], nfactors=4, rotate="varimax") 
+fit.pc
+round(fit.pc$values, 3)
+fit.pc$loadings
+
+# Communalities
+fit.pc$communality
+fit.pc$scores
+# Play with FA utilities
+
+```
+
+
+
+```{r}
+fa.parallel(animal_data[,1:9][-1]) # See factor recommendation
+fa.plot(fit.pc) # See Correlations within Factors
+fa.diagram(fit.pc) # Visualize the relationship
+vss(animal_data[,1:9][-1]) # See Factor recommendations for a simple structure
+
+```
+
+Factor analysis revealed four latent factors (RC1, RC2, RC3, and RC4) derived from the animal rights dataset.
+
+INSIGHTS FOR EACH RCs :
+
+-The first factor (RC1) comprises variables related to animal welfare policies, including fur farming bans, environmental performance index, and support for the universal declaration of animal welfare. 
+
+-The second factor (RC2) appears to be associated with legal aspects of animal rights, such as laws against animal cruelty and recognition of animal suffering.
+
+-The third factor (RC3) seems to capture variables related to agricultural practices and environmental impact, including kilograms of pesticide on cropland and meat consumption. 
+
+-The fourth factor (RC4) seems to represent variables related to conservation efforts, specifically the percentage of protected areas. These factors provide a structured understanding of the underlying dimensions of animal rights across different countries.
+
+Based on the variables included in each factor (RC), we can assign names that reflect the underlying dimensions they represent:
+
+The names for the principal components (PCs) could be:
+
+PC1: "Primary Dimension of Variation"
+PC2: "Secondary Dimension of Variation"
+PC3: "Tertiary Dimension of Variation"
+
+These names reflect the order in which the principal components capture the variance in the dataset. They are named based on their relative importance in explaining the variability observed in the data.
+What would you name your principal components and factors? Why?
+
+RC1: "Animal Welfare Policies"
+
+RC2: "Legal Aspects of Animal Rights"
+
+RC3: "Agricultural Practices and Environmental Impact"
+
+RC4: "Conservation Efforts"
+
+Percentage of Protected Areas
+
+By examining the variables within each factor, we can identify common themes or patterns that reflect specific aspects of animal rights or related concepts. These names make it easier for researchers and stakeholders to understand and communicate the results of the factor analysis, facilitating discussions and decision-making processes related to animal welfare policies, legal aspects, agricultural practices, environmental impact, and conservation efforts.
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
