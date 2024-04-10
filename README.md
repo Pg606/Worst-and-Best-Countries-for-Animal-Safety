@@ -7,13 +7,24 @@ The dataset encompasses 68 observations, each representing a distinct country, a
 # DATA DICTIONARY:
 
 1 Country: The name of the country.
+
 2 Recognition of Animal Sentience: An ordinal variable indicating the level of recognition of animal sentience (0 = No, 1 = Partial, 2 = Yes).
+
 3 Recognition of Animal Suffering: An ordinal variable indicating the level of recognition of animal suffering (0 = No , 1 = Partial, 2 = Yes).
+
 4 Any Laws Against Animal Cruelty: An ordinal variable indicating the existence of laws against animal cruelty (0 = No , 1 = Partial, 2 = Yes).
+
 5 Support for the Universal Declaration of Animal Welfare: An ordinal variable indicating the level of support for the Universal Declaration of Animal Welfare (0 = No, 1 = Partial, 2 = Yes).
+
 6 Fur-Farming Ban: A binary variable indicating whether the country has banned fur farming (0 = No, 1 = Partial, 2 = Yes).
+
 7 Meat Consumption per Capita in Kilograms: The average meat consumption per capita in kilograms.
+
 8 Percentage of Protected Areas: The percentage of land designated as protected areas.
+
 9 Kgs of Pesticide / Hectare of Cropland: The amount of pesticide used per hectare of cropland.
+
 10 Environmental Performance Index Score: The environmental performance index score, reflecting the country's overall environmental performance.
+
 11 Total Score: An aggregated score combining various factors related to animal rights and environmental performance.
+
